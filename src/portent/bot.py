@@ -16,6 +16,7 @@ INTENTS.members = False
 extensions = [
     "portent.cogs.core",
     "portent.cogs.dice",
+    "portent.cogs.about",
 ]
 
 

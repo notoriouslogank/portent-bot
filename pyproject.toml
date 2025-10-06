@@ -3,6 +3,7 @@ name = "portent"
 dynamic = ["version"]
 description="Portent - a slash-first Discord bot, successor to Harbinger."
 readme = "README.md"
+urls = { "Homepage" = "https://github.com/notoriouslogank/portent-bot.git"}
 requires-python = ">=3.11"
 authors = [{ name = "Logan Aker", email = "logankdevemail@gmail.com" }]
 license = { text = "MIT" }
