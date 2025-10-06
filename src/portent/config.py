@@ -12,6 +12,6 @@ class Settings:
     dev_guild_id: int | None = int(os.getenv("DEV_GUILD_ID")) if os.getenv("DEV_GUILD_ID") else None
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     sync_mode: str = os.getenv("SYNC_MODE", "guild")
-
+    app_id: int | None = int(os.getenv("APP_ID")) if os.getenv("APP_ID") else None
 
 settings = Settings()
