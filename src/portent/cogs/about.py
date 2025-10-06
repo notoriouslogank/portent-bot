@@ -1,11 +1,12 @@
 import platform
+import sys
 from datetime import datetime, timezone
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-ACCENT = discord.Color.from_str("8b5cf6")
+ACCENT = discord.Color.from_rgb(139, 92, 246)
 
 def py_version() -> str:
     return ".".join(map(str, sys.version_info[:3]))
