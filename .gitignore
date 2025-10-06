@@ -19,3 +19,4 @@ portent.log
 *.code-workspace
 .DS_Store
 Thumbs.db
+.env.dev
