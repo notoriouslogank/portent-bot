@@ -7,6 +7,7 @@ from discord.ext import commands
 from portent.command_sync import sync_app_commands
 from portent.config import settings
 from portent.logging_setup import setup_logging
+from portent.utils.assets import path_branding
 
 INTENTS = discord.Intents.default()
 INTENTS.message_content = True
@@ -28,7 +29,10 @@ async def _main():
     @bot.event
     async def on_ready():
         log.info(f"[bold]Portent[/] online as [cyan]{bot.user}[/] (id={bot.user.id})")
-        await sync_app_commands(bot, dev_guild_id=settings.dev_guild_id, mode=settings.sync_mode)
+    icon_path = path_branding("icon.png")
+    with open(icon_path, "rb") as f:
+        asset = await bot.user.display_avatar.replace()
+    await sync_app_commands(bot, dev_guild_id=settings.dev_guild_id, mode=settings.sync_mode)
 
     await bot.start(settings.token)
 
