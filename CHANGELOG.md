@@ -3,6 +3,11 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-10-05
+### Added
+- **/roll** dice command: NdM notation (`d20`, `2d20`, `4d6+2`, `3d8-1+5`) with chained modifiers.
+- Safety limits (<= 100 dice, <= 1000 sides) and compact result formatting.
+
 ## [0.1.1] - 2025-10-05
 ### Added
 - Official branding assets: icon and banner under `src/portent/assets/branding`
