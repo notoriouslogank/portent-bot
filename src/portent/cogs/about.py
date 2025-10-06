@@ -26,6 +26,7 @@ class About(commands.Cog):
     @app_commands.command(name="about", description="Show bot version and repository link.")
     async def about(self, interaction: discord.Interaction):
 
+        server_os = platform.system()
         py = platform.python_version()
         dp = discord.__version__
         guilds = len(self.bot.guilds)
@@ -34,6 +35,7 @@ class About(commands.Cog):
         embed.add_field(name="Version", value=VERSION, inline=True)
         embed.add_field(name="discord.py", value=dp, inline=True)
         embed.add_field(name="Python", value=py, inline=True)
+        embed.add_field(name="Platform", value=server_os, inline=True)
         embed.add_field(name="Servers", value=str(guilds), inline=True)
         if REPO_URL:
             embed.add_field(name="GitHub", value=REPO_URL, inline=False)
