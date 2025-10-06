@@ -1,0 +1,59 @@
+[project]
+name = "portent"
+dynamic = ["version"]
+description="Portent - a slash-first Discord bot, successor to Harbinger."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Logan Aker", email = "logankdevemail@gmail.com" }]
+license = { text = "MIT" }
+keywords = ["discord", "bot", "slash-commandis", "discord.py"]
+
+dependencies = [
+    "discord.py>=2.4.0",
+    "python-dotenv>=1.0.1",
+    "rich>=13.7.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.6.9",
+    "pre-commit>=3.8.0",
+    "setuptools-scm>=8.0.0",
+]
+
+[project.scripts]
+portent = "portent.bot:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests"]
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["venv", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PL"]
+ignore = ["E203"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+testpaths = ["tests"]
