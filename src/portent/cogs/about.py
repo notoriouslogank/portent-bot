@@ -1,23 +1,31 @@
 import platform
+from datetime import datetime, timezone
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-# Prefer dynamic metadata; fall back to hardcoded strings if missing
-try:
-    import importlib.metadata as im
-    PKG = "portent"
-    VERSION = im.version(PKG)
-    META = im.metadata(PKG)
-    DESC = META.get("Summary", "A slash-first Discord bot; successor to Harbinger.")
-    HOMEPAGE = META.get("Home-page") or META.get("Project-URL") or ""
-except Exception:
-    VERSION = "0+unknown"
-    DESC = "A slash-first Discord bot; successor to Harbinger."
-    HOMEPAGE = ""
+ACCENT = discord.Color.from_str("8b5cf6")
 
-REPO_URL = HOMEPAGE or "https://github.com/notoriouslogank/portent-bot.git"
+def py_version() -> str:
+    return ".".join(map(str, sys.version_info[:3]))
+
+def get_meta():
+    try:
+        import importlib.metadata as im
+        m = im.metadata("portent")
+        version = im.version("portent")
+        desc = m.get("Summary") or "A slash-first Discord bot -- the successor to Harbinger."
+        homepage = (
+            m.get("Home-page")
+            or (m.get("Project-URL") or "").split(",")[-1].strip()
+            or ""
+        )
+        return version, desc, homepage
+    except Exception:
+        return "0+unknown", "Slash-first Discord bot.", ""
+
+VERSION, DESC, REPO_URL = get_meta()
 
 class About(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -26,25 +34,35 @@ class About(commands.Cog):
     @app_commands.command(name="about", description="Show bot version and repository link.")
     async def about(self, interaction: discord.Interaction):
 
-        server_os = platform.system()
-        py = platform.python_version()
-        dp = discord.__version__
         guilds = len(self.bot.guilds)
+        dp_ver = discord.__version__
+        py_ver = py_version()
+        platform_name = platform.system()
 
-        embed = discord.Embed( title="Portent", description="DESC", color=discord.Color.purple(),)
-        embed.add_field(name="Version", value=VERSION, inline=True)
-        embed.add_field(name="discord.py", value=dp, inline=True)
-        embed.add_field(name="Python", value=py, inline=True)
-        embed.add_field(name="Platform", value=server_os, inline=True)
-        embed.add_field(name="Servers", value=str(guilds), inline=True)
-        if REPO_URL:
-            embed.add_field(name="GitHub", value=REPO_URL, inline=False)
+        embed = discord.Embed(
+            title="Portent",
+            description="*Occult-mechanical oracle for your server.*",
+            color=ACCENT,
+            timestamp=datetime.now(timezone.utc),
+        )
 
         if self.bot.user and self.bot.user.display_avatar:
+            embed.set_author(name=str(self.bot.user), icon_url=self.bot.user.display_avatar.url)
             embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+
+        embed.add_field(name="Version", value=f"`{VERSION}`", inline=True)
+        embed.add_field(name="Runtime", value=f"py `{py_ver}` - d.py `{dp_ver}`",  inline=True)
+        embed.add_field(name="Servers", value=f"{guilds}", inline=True)
+
+        embed.add_field(name="Platform", value=f"{platform_name}", inline=True)
+        embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+        if REPO_URL:
+            embed.add_field(name="GitHub", value=f"[notoriouslogank/portent-bot]({REPO_URL})", inline=False)
+
+        embed.set_footer(text=f"Invoked by {interaction.user.display_name}")
 
         await interaction.response.send_message(embed=embed)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(About(bot))
-
