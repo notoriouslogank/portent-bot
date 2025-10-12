@@ -1,6 +1,6 @@
 [project]
 name = "portent"
-version = "0.3.0"
+version = "1.0.0"
 description="Portent - a slash-first Discord bot, successor to Harbinger."
 readme = "README.md"
 urls = { "Homepage" = "https://github.com/notoriouslogank/portent-bot.git"}
