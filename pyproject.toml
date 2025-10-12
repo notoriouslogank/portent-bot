@@ -1,6 +1,6 @@
 [project]
 name = "portent"
-version = "1.0.0"
+version = "0.2.1"
 description="Portent - a slash-first Discord bot, successor to Harbinger."
 readme = "README.md"
 urls = { "Homepage" = "https://github.com/notoriouslogank/portent-bot.git"}
@@ -61,7 +61,7 @@ testpaths = ["tests"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.3.0"
+version = "0.2.1"
 tag_format = "v$version"
 version_scheme = "semver"
 version_provider = "pep621"
