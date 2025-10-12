@@ -6,7 +6,7 @@ from typing import Literal
 import aiohttp
 import discord
 import wikipediaapi
-from discord import app_commands
+from discord import Interaction, app_commands
 from discord.ext import commands
 
 # from jokeapi import Jokes
