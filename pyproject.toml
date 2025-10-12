@@ -1,6 +1,6 @@
 [project]
 name = "portent"
-dynamic = ["version"]
+version = "0.3.0"
 description="Portent - a slash-first Discord bot, successor to Harbinger."
 readme = "README.md"
 urls = { "Homepage" = "https://github.com/notoriouslogank/portent-bot.git"}
@@ -58,3 +58,11 @@ line-ending = "lf"
 addopts = "-q"
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.3.0"
+tag_format = "v$version"
+version_scheme = "semver"
+version_provider = "pep621"
+update_changelog_on_bump = true
