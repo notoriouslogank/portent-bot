@@ -17,6 +17,7 @@ DICE_RE = re.compile(
 
 MAX_DICE = 100
 MAX_SIDES = 1000
+MIN_SIDES = 2
 MAX_SUMMARY_LEN = 500
 
 
@@ -35,7 +36,7 @@ def parse_expression(expr: str) -> tuple[int, int, int]:
 
     if not (1 <= count <= MAX_DICE):
         raise ValueError(f"Dice count must be 1-{MAX_DICE}.")
-    if not (2 <= sides <= MAX_SIDES):
+    if not (MIN_SIDES <= sides <= MAX_SIDES):
         raise ValueError(f"Sides must be 2-{MAX_SIDES}.")
 
     return count, sides, mod
