@@ -19,6 +19,7 @@ MAX_DICE = 100
 MAX_SIDES = 1000
 MAX_SUMMARY_LEN = 500
 
+
 def parse_expression(expr: str) -> tuple[int, int, int]:
     m = DICE_RE.match(expr)
     if not m:
@@ -39,15 +40,14 @@ def parse_expression(expr: str) -> tuple[int, int, int]:
 
     return count, sides, mod
 
+
 class Dice(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @app_commands.command(
-        name="roll",
-        description="Roll dice with NdM notation (e.g., 2d20, 4d6+2, d100)."
+        name="roll", description="Roll dice with NdM notation (e.g., 2d20, 4d6+2, d100)."
     )
-
     @app_commands.describe(expression="Dice expression like 2d20, 4d6+2, d100")
     async def roll(self, interaction: discord.Interaction, expression: str):
         try:
@@ -73,6 +73,7 @@ class Dice(commands.Cog):
             color=discord.Color.dark_purple(),
         )
         await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Dice(bot))

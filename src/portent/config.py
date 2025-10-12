@@ -14,4 +14,5 @@ class Settings:
     sync_mode: str = os.getenv("SYNC_MODE", "guild")
     app_id: int | None = int(os.getenv("APP_ID")) if os.getenv("APP_ID") else None
 
+
 settings = Settings()
