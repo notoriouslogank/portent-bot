@@ -1,9 +1,10 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
+from rich.logging import RichHandler
+
 
 def setup_logging(level: str = "INFO") -> None:
-    from rich.logging import RichHandler
 
     logging.basicConfig(
         level=getattr(logging, level.upper(), logging.INFO),

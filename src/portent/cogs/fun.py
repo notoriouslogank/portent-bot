@@ -13,6 +13,8 @@ from discord.ext import commands
 
 ACCENT = discord.Color.from_rgb(139, 92, 248)
 MAX_EMBED_DESC = 4096
+HTTP_OK = 200
+EVIL_INSULT_URL = "https://evilinsult.com/generate_insult.php?lang=en&type=json"
 
 
 def make_bubble_wrap(rows: int = 12, cols: int = 18) -> str:
@@ -53,31 +55,6 @@ class Tools(commands.Cog):
     async def bw(self, itx: Interaction) -> None:
         await itx.response.send_message(make_bubble_wrap())
 
-    # /joke
-    #    @app_commands.command(name="joke", description="Tell a joke (JokeAPI).")
-    #    @app_commands.choices(
-    #            category=[
-    #                app_commands.Choice(name="Any", value="Any"),
-    #                app_commands.Choice(name="Programming", value="Programming"),
-    #                app_commands.Choice(name="Misc", value="Misc"),
-    #                app_commands.Choice(name="Pun", value="Pun"),
-    #                app_commands.Choice(name="Spooky", value="Spooky"),
-    #                app_commands.Choice(name="Christmas", value="Christmas"),
-    #                app_commands.Choice(name="Dark (NSFW-ish)", value="Dark"),
-    #            ]
-    #        )
-
-    #   async def joke(self, interaction: discord.Interaction, category: app_commands.Choice([str], [str])) -> None:
-    #       await interaction.response.defer(thinking=True)
-    #       j = await Jokes()
-    #       result = await j.get_joke(
-    #           category=category.value,
-    #           safe_mode=False,
-    #           amount=1,
-    #           response_format="txt",
-    #       )
-    #       await interaction.followup.send(result)
-
     # /slang
     @tools.command(name="slang", description="Search Urban Dictionary.")
     @app_commands.describe(query="Term or phrase to define")
@@ -91,18 +68,13 @@ class Tools(commands.Cog):
     @app_commands.describe(member="who to insult")
     async def insult(self, itx: Interaction, member: discord.Member) -> None:
         await itx.response.defer(thinking=True)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://evilinsult.com/generate_insult.php?lang=en&type=json"
-            ) as resp:
-                if resp.status != 200:
-                    await itx.followup.send(
-                        "Insult generator is grumpy right now; please try agan later!"
-                    )
-                    return
-                data = await resp.json()
-                insult_text = str(data.get("insult", "You magnificent enigma."))
-                await itx.followup.send(f"{member.mention}: {insult_text}")
+        async with aiohttp.ClientSession() as session, session.get(EVIL_INSULT_URL) as resp:
+            if resp.status != HTTP_OK:
+                await itx.followup.send("Insult generator is grumpy right now!")
+                return
+        data = await resp.json()
+        insult_text = str(data.get("insult", "You magnificent bastard!"))
+        await itx.followup.send(f"{member.mention}: {insult_text}")
 
     # /lmgtfy
     @tools.command(name="lmgtfy", description="Let me Google that for you.")
@@ -113,45 +85,42 @@ class Tools(commands.Cog):
         await itx.followup.send(f"Here, let me just Google that for you...\n{url}")
 
     # /define
-    @tools.command(name="define", description="Define a word; include pronunciation if available.")
+    @tools.command(name="define", description="Define a word.")
     @app_commands.describe(word="Word to define")
     async def define(self, itx: Interaction, word: str) -> None:
         await itx.response.defer(thinking=True)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
-            ) as resp:
-                if resp.status != 200:
-                    await itx.followup.send(f"Couldn't fetch a definition for **{word}**.")
-                    return
-                try:
-                    payload = await resp.json()
-                    entry = payload[0]
-                    phonetics = entry.get("phonetics") or []
-                    meanings = entry.get("meanings") or []
+        url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
+        async with aiohttp.ClientSession() as session, session.get(url) as resp:
+            if resp.status != HTTP_OK:
+                await itx.followup.send(f"Couldn't fetch a definition for **{word}**.")
+                return
+            try:
+                payload = await resp.json()
+                entry = payload[0]
+                phonetics = entry.get("phonetics") or []
+                meanings = entry.get("meanings") or []
 
-                    audio = (phonetics[0].get("audio") if phonetics else None) or None
-                    phon_text = (phonetics[0].get("text") if phonetics else None) or None
-                    definition = (
-                        meanings[0].get("definitions")[0].get("definition")
-                        if meanings and meanings[0].get("definitions")
-                        else None
-                    )
+                audio = (phonetics[0].get("audio") if phonetics else None) or None
+                phon_text = (phonetics[0].get("text") if phonetics else None) or None
+                definition = (
+                    meanings[0].get("definitions")[0].get("definition")
+                    if meanings and meanings[0].get("definitions")
+                    else None
+                )
+                desc = "No phonetics guide available."
+                if phon_text and not audio:
+                    desc = phon_text
+                elif phon_text and audio:
+                    desc = f"[{phon_text}]({audio})"
 
-                    desc = "No phonetic guide available."
-                    if phon_text and not audio:
-                        desc = phon_text
-                    elif phon_text and audio:
-                        desc = f"[{phon_text}]({audio})"
-
-                    embed = discord.Embed(title=word, description=desc, color=ACCENT)
-                    if definition:
-                        embed.add_field(name="\u200b", value=definition, inline=False)
-                    await itx.followup.send(embed=embed)
-                except Exception:
-                    await itx.followup.send(
-                        f"Something went sideways parsing the entry for **{word}**."
-                    )
+                embed = discord.Embed(title=word, description=desc, color=ACCENT)
+                if definition:
+                    embed.add_field(name="\u200b", value=definition, inline=False)
+                await itx.followup.send(embed=embed)
+            except Exception:
+                await itx.followup.send(
+                    f"Something went sideways parsing the entry for **{word}**."
+                )
 
     # /tools rps
     @tools.command(name="rps", description="Play rock, paper, scissors.")

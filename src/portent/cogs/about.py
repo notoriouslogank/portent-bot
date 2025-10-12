@@ -1,29 +1,24 @@
 import platform
 import sys
 from datetime import UTC, datetime
+from importlib import metadata as importlib_metadata
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+
+
+def get_meta():
+    try:
+        return importlib_metadata.metadata("portent")
+    except Exception:
+        return {}
 
 ACCENT = discord.Color.from_rgb(139, 92, 246)
 
 
 def py_version() -> str:
     return ".".join(map(str, sys.version_info[:3]))
-
-
-def get_meta():
-    try:
-        import importlib.metadata as im
-
-        m = im.metadata("portent")
-        version = im.version("portent")
-        desc = m.get("Summary") or "A slash-first Discord bot -- the successor to Harbinger."
-        homepage = m.get("Home-page") or (m.get("Project-URL") or "").split(",")[-1].strip() or ""
-        return version, desc, homepage
-    except Exception:
-        return "0+unknown", "Slash-first Discord bot.", ""
 
 
 VERSION, DESC, REPO_URL = get_meta()
