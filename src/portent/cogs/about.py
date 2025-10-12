@@ -14,6 +14,7 @@ def get_meta():
     except Exception:
         return {}
 
+
 ACCENT = discord.Color.from_rgb(139, 92, 246)
 
 
