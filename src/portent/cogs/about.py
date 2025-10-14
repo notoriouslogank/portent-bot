@@ -10,6 +10,7 @@ from discord.ext import commands
 
 def get_meta():
     try:
+        print(importlib_metadata.metadata("portent"))
         return importlib_metadata.metadata("portent")
     except Exception:
         return {}
@@ -22,7 +23,7 @@ def py_version() -> str:
     return ".".join(map(str, sys.version_info[:3]))
 
 
-VERSION, DESC, REPO_URL = get_meta()
+DESC, REPO_URL = get_meta()
 
 
 class About(commands.Cog):
@@ -47,7 +48,7 @@ class About(commands.Cog):
             embed.set_author(name=str(self.bot.user), icon_url=self.bot.user.display_avatar.url)
             embed.set_thumbnail(url=self.bot.user.display_avatar.url)
 
-        embed.add_field(name="Version", value=f"`{VERSION}`", inline=True)
+        #        embed.add_field(name="Version", value=f"`{VERSION}`", inline=True)
         embed.add_field(name="Runtime", value=f"py `{py_ver}` - d.py `{dp_ver}`", inline=True)
         embed.add_field(name="Servers", value=f"{guilds}", inline=True)
 

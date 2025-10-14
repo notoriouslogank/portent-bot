@@ -5,7 +5,6 @@ from typing import Literal
 
 import aiohttp
 import discord
-import wikipediaapi
 from discord import Interaction, app_commands
 from discord.ext import commands
 
@@ -15,11 +14,26 @@ ACCENT = discord.Color.from_rgb(139, 92, 248)
 MAX_EMBED_DESC = 4096
 HTTP_OK = 200
 EVIL_INSULT_URL = "https://evilinsult.com/generate_insult.php?lang=en&type=json"
+MEDIAWIKI_API = "https://en.wikipedia.org/w/api.php"
+WIKI_ICON = "https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png"
+
+
+def brand_embed(title: str, desc: str | None = None) -> discord.Embed:
+    e = discord.Embed(title=title, description=desc, color=ACCENT)
+    e.set_footer(text="Portent | tools")
+    e.timestamp = discord.utils.utcnow()
+    return e
 
 
 def make_bubble_wrap(rows: int = 12, cols: int = 18) -> str:
     cell = "||pop||"
     return "\n".join("".join(cell for _ in range(cols)) for _ in range(rows))
+
+
+class LinkRow(discord.ui.View):
+    def __init__(self, *, url: str, label: str = "Open", timeout: float | None = 30):
+        super().__init__(timeout=timeout)
+        self.add_item(discord.ui.Button(style=discord.ButtonStyle.link, url=url, label=label))
 
 
 class Tools(commands.Cog):
@@ -30,25 +44,70 @@ class Tools(commands.Cog):
 
     # /wiki
     @tools.command(name="wiki", description="Get a Wikipedia summary for a topic.")
-    @app_commands.describe(query="Topic to search on Wikipedia.")
-    async def wiki(self, itx: Interaction, query: str) -> None:
-        await itx.response.defer(thinking=True)
-        wiki = wikipediaapi.Wikipedia("PortentBot/1.0 (Discord)", "en")
-        page = wiki.page(query)
+    @app_commands.describe(query="Topic to search on Wikipedia.", private="Send only to yourself!")
+    async def wiki(self, itx: Interaction, query: str, private: bool = False) -> None:
+        await itx.response.defer(thinking=True, ephemeral=private)
+        params = {
+            "action": "query",
+            "prop": "pageimages|info|extracts",
+            "inprop": "url",
+            "exintro": "True",
+            "explaintext": "True",
+            "titles": query,
+            "pithumbsize": "512",
+            "format": "json",
+            "origin": "*",
+        }
 
-        if not page.exists():
+        try:
+            async with aiohttp.ClientSession() as s, s.get(MEDIAWIKI_API, params=params) as r:
+                if r.status != HTTP_OK:
+                    await itx.followup.send("Wikipedia is being moody.  Try again later!")
+                    return
+                data = await r.json()
+        except Exception as e:
+            await itx.followup.send(f"Couldn't reach Wikipedia right now. \n{e}")
+            return
+
+        pages = data.get("query", {}).get("pages", {})
+        if not pages or "-1" in pages:
             await itx.followup.send(f"Couldn't find a page for **{query}**.")
             return
 
-        title = page.title
-        summary = page.summary or "No summary available"
-        embed = discord.Embed(
-            title=title,
-            description=summary[:MAX_EMBED_DESC],
-            color=ACCENT,
-            url=f"https://wikipedia.org/wiki/{title.replace(' ', '_')}",
-        )
-        await itx.followup.send(embed=embed)
+        page = next(iter(pages.values()))
+        title = page.get("title", query)
+        url = page.get("fullurl", f"https://wikipedia.org/wiki/{title.replace(' ', '_')}")
+        thumb = page.get("thumbnail", {}).get("source")
+        extract = (page.get("extract") or "No summary available.")[:MAX_EMBED_DESC]
+
+        embed = brand_embed(title, extract)
+        embed.set_author(name="Wikipedia", icon_url=WIKI_ICON, url=url)
+        if thumb:
+            embed.set_thumbnail(url=thumb)
+
+        await itx.followup.send(embed=embed, view=LinkRow(url=url), ephemeral=private)
+
+    #    @wiki.autocomplete("query")
+    #    async def ac_wiki(self, itx: Interaction, current: str):
+    #        if not current:
+    #            return []
+    #        params = {
+    #            "action": "opensearch",
+    #            "search": current,
+    #            "limit": 10,
+    #            "namespace": 0,
+    #            "format": "json",
+    #            "origin": "*",
+    #        }
+    #        try:
+    #            async with aiohttp.ClientSession() as s, s.get(MEDIAWIKI_API, params=params) as r:
+    #                if r.status != HTTP_OK:
+    #                    return []
+    #                data = await r.json()
+    #                titles = data[1] if isinstance(data, list) and len(data) > 1 else []
+    #        except Exception:
+    #            return []
+    #        return [app_commands.Choice(name=t[:100], value=t[:100]) for t in titles]
 
     # /bw
     @tools.command(name="bw", description="Unspool some bubble wrap.")
@@ -61,7 +120,10 @@ class Tools(commands.Cog):
     async def slang(self, itx: Interaction, query: str) -> None:
         await itx.response.defer(thinking=True)
         url = f"https://www.urbandictionary.com/define.php?term={query.strip().replace(' ', '+')}"
-        await itx.followup.send(f"Let me see what I can find for **{query}**...\n{url}")
+        await itx.followup.send(
+            f"Let me see what I can find for **{query}**...",
+            view=LinkRow(url=url, label="Open results"),
+        )
 
     # /insult
     @tools.command(name="insult", description="Send a random insult to a user.")
